@@ -55,6 +55,7 @@ The error-filter will filter that out later."
          (_ 'error))
        .message
        :filename full-path
+       :id .check_id
        :checker checker
        :buffer (find-buffer-visiting full-path)))))
 
