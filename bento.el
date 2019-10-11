@@ -70,7 +70,7 @@ The error-filter will filter that out later."
 
 (flycheck-define-checker bento
   "Multi-language checker using Bento."
-  :command ("bento" "check" "--format" "json")
+  :command ("bento" "check" "--formatter" "bento.formatter.Json")
   :error-parser bento--parse-flycheck
   :modes (python-mode js-mode js2-mode))
 
