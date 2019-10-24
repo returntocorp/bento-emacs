@@ -1,4 +1,4 @@
-;;; bento.el --- the bento code checker      -*- lexical-binding: t; -*-
+;;; bento.el --- Flycheck integration for the Bento code checker -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019 r2c
 
@@ -7,7 +7,7 @@
 ;; URL: https://github.com/returntocorp/bento-emacs
 ;; Version: 0.1.0
 ;; Package-Version: 0.1.0
-;; Package-Requires: ((flycheck "0.22") (emacs "25") (f "0.20"))
+;; Package-Requires: ((flycheck "0.22") (emacs "25.1") (f "0.20"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -25,26 +25,17 @@
 
 (defun bento--parse-flycheck (output checker buffer)
   "Parse OUTPUT as bento JSON.
-
 CHECKER and BUFFER are supplied by Flycheck and indicate the checker that ran
 and the buffer that were checked."
   (when-let ((buffer-path (buffer-file-name buffer))
              (bento-dir (bento--find-base-dir buffer-path))
-             (findings (bento--findings-for-path output
-                                                 (f-relative buffer-path bento-dir))))
-             (mapcar (apply-partially 'bento--finding-to-flycheck checker buffer)
-                     findings)))
+             (findings (car (flycheck-parse-json output))))
+    (mapcar
+     (apply-partially #'bento--finding-to-flycheck checker buffer)
+     findings)))
 
-(defun bento--findings-for-path (output path)
-  "Select out the findings in OUTPUT whose path is PATH."
-  (car (flycheck-parse-json output)))
-
-
-(defun bento--finding-to-flycheck (checker buffer finding)
-  "Convert FINDING into a Flycheck error found by CHECKER in BUFFER.
-
-Note that this will set the buffer even for errors that occurred in other files.
-The error-filter will filter that out later."
+(defun bento--finding-to-flycheck (checker _buffer finding)
+  "Convert FINDING into a Flycheck error found by CHECKER in BUFFER."
   (let-alist finding
     (flycheck-error-new-at
      .line
@@ -64,8 +55,10 @@ The error-filter will filter that out later."
 (flycheck-define-checker bento
   "Multi-language checker using Bento."
   :command ("bento" "check" "--formatter" "json" source-inplace)
-  :error-parser (lambda () (bento--parse-flycheck buffer-file-name))
+  :error-parser bento--parse-flycheck
   :enabled (lambda () (bento--find-base-dir buffer-file-name))
+  ;; Bento needs to be run from the directory with the .bento.yml.
+  :working-directory (lambda (_checker) (bento--find-base-dir buffer-file-name))
   :modes (python-mode js-mode js2-mode js-jsx-mode))
 
 (provide 'bento)
