@@ -5,8 +5,8 @@
 ;; Author: Ash Zahlen <ash@returntocorp.com>
 ;; License: GPLv3
 ;; URL: https://github.com/returntocorp/bento-emacs
-;; Version: 0.0.1
-;; Package-Version: 0.0.1
+;; Version: 0.1.0
+;; Package-Version: 0.1.0
 ;; Package-Requires: ((flycheck "0.22") (emacs "25") (f "0.20"))
 
 ;; This file is not part of GNU Emacs.
@@ -59,17 +59,13 @@ The error-filter will filter that out later."
 
 (defun bento--find-base-dir (path)
   "Starting from the directory containing PATH, find the first .bento.yml file."
-  (if path
-      (when-let (dir (f-dirname path))
-        (if (f-exists? (f-join dir ".bento.yml"))
-            dir
-          (bento--find-base-dir dir)))
-    nil))
+  (locate-dominating-file path ".bento.yml"))
 
 (flycheck-define-checker bento
   "Multi-language checker using Bento."
   :command ("bento" "check" "--formatter" "json" source-inplace)
-  :error-parser bento--parse-flycheck
+  :error-parser (lambda () (bento--parse-flycheck buffer-file-name))
+  :enabled (lambda () (bento--find-base-dir buffer-file-name))
   :modes (python-mode js-mode js2-mode js-jsx-mode))
 
 (provide 'bento)
