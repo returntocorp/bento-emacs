@@ -46,19 +46,16 @@ and the buffer that were checked."
 Note that this will set the buffer even for errors that occurred in other files.
 The error-filter will filter that out later."
   (let-alist finding
-    (let ((full-path (f-join (bento--find-base-dir .path) .path)))
-      (flycheck-error-new-at
-       .line
-       .column
-       (pcase .severity
-         (1 'warning)
-         (2 'error)
-         (_ 'error))
-       .message
-       :filename full-path
-       :id .check_id
-       :checker checker
-       :buffer (find-buffer-visiting full-path)))))
+    (flycheck-error-new-at
+     .line
+     .column
+     (pcase .severity
+       (1 'warning)
+       (2 'error)
+       (_ 'error))
+     .message
+     :id .check_id
+     :checker checker)))
 
 (defun bento--find-base-dir (path)
   "Starting from the directory containing PATH, find the first .bento.yml file."
@@ -71,9 +68,9 @@ The error-filter will filter that out later."
 
 (flycheck-define-checker bento
   "Multi-language checker using Bento."
-  :command ("bento" "check" "--formatter" "bento.formatter.Json")
+  :command ("bento" "check" "--formatter" "json" source-inplace)
   :error-parser bento--parse-flycheck
-  :modes (python-mode js-mode js2-mode))
+  :modes (python-mode js-mode js2-mode js-jsx-mode))
 
 (provide 'bento)
 ;;; bento.el ends here
