@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019 r2c
 
 ;; Author: Ash Zahlen <ash@returntocorp.com>
-;; License: MIT
+;; License: GPLv3
 ;; URL: https://github.com/returntocorp/bento-emacs
 ;; Version: 0.0.1
 ;; Package-Version: 0.0.1
